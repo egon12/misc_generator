@@ -3,30 +3,38 @@ package proto_to_entity
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/iancoleman/strcase"
 )
 
-func getEntityType(field *descriptor.FieldDescriptorProto) (string, error) {
+func getEntityType(field *descriptor.FieldDescriptorProto, packageName string) (string, error) {
 	switch field.GetType() {
-	case descriptor.FieldDescriptorProto_TYPE_MESSAGE, descriptor.FieldDescriptorProto_TYPE_ENUM:
-		return fixTypeName(field.GetTypeName()), nil
+
+	case descriptor.FieldDescriptorProto_TYPE_ENUM:
+		fmt.Println(field.GetTypeName())
+		return fixTypeName(field.GetTypeName(), packageName), nil
+	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
+		return fixTypeName(field.GetTypeName(), packageName), nil
 	default:
 		return mapToGoEntityType(field.GetType())
 	}
 }
 
-func fixTypeName(input string) string {
-	output := input[1:]
+func fixTypeName(input string, packageName string) (output string) {
+	output = input[1:]
 
 	if output == "google.protobuf.Timestamp" {
 		output = "*time.Time"
-	} else {
-		output = strcase.ToCamel(output)
+		return
 	}
 
-	return output
+	if strings.HasPrefix(output, packageName) {
+		output = output[len(packageName):]
+	}
+
+	return strcase.ToCamel(output)
 }
 
 func mapToGoEntityType(input descriptor.FieldDescriptorProto_Type) (string, error) {

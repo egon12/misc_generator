@@ -50,13 +50,16 @@ func generateStructFromMessage(fdp *descriptor.FileDescriptorProto, output io.Wr
 
 	var b []byte
 
+	packageName := fdp.GetPackage()
+
 	for _, msg := range fdp.GetMessageType() {
 		structName := strcase.ToCamel(msg.GetName())
 		b = []byte(fmt.Sprintf("type %s struct {\n", structName))
 		output.Write(b)
 
 		for _, f := range msg.GetField() {
-			fieldType, err := getEntityType(f)
+
+			fieldType, err := getEntityType(f, packageName)
 			if err != nil {
 				return err
 			}
