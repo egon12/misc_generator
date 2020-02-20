@@ -50,20 +50,20 @@ message {{.Name}} {
 {{end}}}
 `
 
-func mapResolver(resolver *ast.Definition, output io.Writer) error {
+func mapResolver(resolver *ast.Definition, output io.Writer, config Config) error {
 	g := gostructStruct{
-		Name:   resolver.Name,
+		Name:   cleanNameFromPrefix(resolver.Name, config),
 		Fields: []gostructFieldStruct{},
 	}
 
 	for _, f := range resolver.Fields {
 		gf := gostructFieldStruct{
 			Name:     f.Name,
-			FuncName: strcase.ToCamel(f.Name),
+			FuncName: cleanNameFromPrefix(strcase.ToCamel(f.Name), config),
 			Parent:   &g,
 		}
 		t, _ := mapTypeGraphQltoType(f.Type)
-		gf.Type = t
+		gf.Type = cleanNameFromPrefix(t, config)
 		g.Fields = append(g.Fields, gf)
 	}
 

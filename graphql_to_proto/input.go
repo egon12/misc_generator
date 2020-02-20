@@ -7,9 +7,9 @@ import (
 	"github.com/vektah/gqlparser/ast"
 )
 
-func mapInput(input *ast.Definition, output io.Writer) error {
+func mapInput(input *ast.Definition, output io.Writer, config Config) error {
 	g := gostructStruct{
-		Name:   input.Name,
+		Name:   cleanNameFromPrefix(input.Name, config),
 		Fields: []gostructFieldStruct{},
 	}
 
@@ -19,7 +19,7 @@ func mapInput(input *ast.Definition, output io.Writer) error {
 			Parent: &g,
 		}
 		t, _ := mapTypeGraphQltoType(f.Type)
-		gf.Type = t
+		gf.Type = cleanNameFromPrefix(t, config)
 		g.Fields = append(g.Fields, gf)
 	}
 

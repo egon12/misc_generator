@@ -13,11 +13,11 @@ enum {{.Name}} {
 {{end}}}
 `
 
-func mapEnum(enum *ast.Definition, output io.Writer) error {
+func mapEnum(enum *ast.Definition, output io.Writer, config Config) error {
 	allEnum := struct {
 		Name string
 		Enum []string
-	}{enum.Name, []string{}}
+	}{cleanNameFromPrefix(enum.Name, config), []string{}}
 
 	for _, en := range enum.EnumValues {
 		allEnum.Enum = append(allEnum.Enum, en.Name)
