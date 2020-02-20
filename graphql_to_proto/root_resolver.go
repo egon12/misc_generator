@@ -1,4 +1,4 @@
-package togrpc
+package graphql_to_proto
 
 import (
 	"io"

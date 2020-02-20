@@ -1,4 +1,4 @@
-package togoresolver
+package graphql_to_go
 
 import (
 	"fmt"
