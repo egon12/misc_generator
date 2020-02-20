@@ -1,0 +1,24 @@
+syntax="proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option go_package="ping";
+
+
+enum Status {
+	Unknown = 0;
+	OK = 1;
+	Down = 2;
+}
+
+message Request{}
+
+message Response{
+	string version = 1;
+	Status status = 2;
+	google.protobuf.Timestamp time = 3;
+}
+
+service Ping {
+	rpc Ping(Request) returns (Response);
+}
