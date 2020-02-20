@@ -2,6 +2,7 @@ package graphql_to_go
 
 import (
 	"io"
+	"strings"
 	"text/template"
 
 	"github.com/iancoleman/strcase"
@@ -20,7 +21,7 @@ func mapInput(input *ast.Definition, output io.Writer) error {
 			Parent: &g,
 		}
 		t, _ := mapTypeGraphQltoType(f.Type)
-		gf.Type = t
+		gf.Type = removePointer(t)
 		g.Fields = append(g.Fields, gf)
 	}
 
@@ -31,4 +32,12 @@ func mapInput(input *ast.Definition, output io.Writer) error {
 	}
 
 	return tmpl.Execute(output, g)
+}
+
+func removePointer(gotype string) string {
+	if strings.HasPrefix(gotype, "*") {
+		return strings.Replace(gotype, "*", "", 1)
+	}
+	return gotype
+
 }
