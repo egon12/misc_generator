@@ -34,11 +34,12 @@ type argument struct {
 
 const gostructTmpl = `
 type {{.Name}} struct {
-{{range $f := .Fields}}{{$f.Name}} {{$f.Type}}
+{{range $f := .Fields}}	{{$f.Name}} {{$f.Type}}
 {{end}}}
 `
 
-const gostructFuncTmpl = `func (o {{.Parent.Name}}) {{.FuncName}}() {{.Type}} { return o.{{.Name}} }
+const gostructFuncTmpl = `// {{.FuncName}} is resolver function for {{.Name}}
+func (o {{.Parent.Name}}) {{.FuncName}}() {{.Type}} { return o.{{.Name}} }
 `
 
 func mapResolver(resolver *ast.Definition, output io.Writer) error {

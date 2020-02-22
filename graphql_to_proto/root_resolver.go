@@ -15,10 +15,9 @@ func (o *{{.ModuleName}}) {{.FuncName}}(ctx context.Context{{range $a := .Argume
 }
 `
 
-const rpcTmpl = `
-{{range $f := .RPC}}
+const rpcTmpl = `{{range $f := .RPC}}
 message {{.ArgumentType}} {
-{{range $f := .ArgumentFields}} {{$f}};
+{{range $f := .ArgumentFields}}	{{$f}};
 {{end}}}
 {{end}}
 
