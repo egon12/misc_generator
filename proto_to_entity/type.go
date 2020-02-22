@@ -10,15 +10,18 @@ import (
 )
 
 func getEntityType(field *descriptor.FieldDescriptorProto, packageName string) (string, error) {
+	var firstSlice string
+	if field.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+		firstSlice = "[]"
+	}
 	switch field.GetType() {
 
-	case descriptor.FieldDescriptorProto_TYPE_ENUM:
-		fmt.Println(field.GetTypeName())
-		return fixTypeName(field.GetTypeName(), packageName), nil
-	case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-		return fixTypeName(field.GetTypeName(), packageName), nil
+	case descriptor.FieldDescriptorProto_TYPE_ENUM,
+		descriptor.FieldDescriptorProto_TYPE_MESSAGE:
+		return firstSlice + fixTypeName(field.GetTypeName(), packageName), nil
 	default:
-		return mapToGoEntityType(field.GetType())
+		t, err := mapToGoEntityType(field.GetType())
+		return firstSlice + t, err
 	}
 }
 
@@ -49,16 +52,6 @@ func mapToPrimitiveGoEntityType(input descriptor.FieldDescriptorProto_Type) (str
 		return reflect.Float64.String(), nil
 	case descriptor.FieldDescriptorProto_TYPE_FLOAT:
 		return reflect.Float32.String(), nil
-	case descriptor.FieldDescriptorProto_TYPE_INT64:
-		return reflect.Int64.String(), nil
-	case descriptor.FieldDescriptorProto_TYPE_UINT64:
-		return reflect.Uint64.String(), nil
-	case descriptor.FieldDescriptorProto_TYPE_INT32:
-		return reflect.Uint32.String(), nil
-	case descriptor.FieldDescriptorProto_TYPE_FIXED64:
-		return reflect.Int64.String(), nil
-	case descriptor.FieldDescriptorProto_TYPE_FIXED32:
-		return reflect.Int32.String(), nil
 	case descriptor.FieldDescriptorProto_TYPE_BOOL:
 		return reflect.Bool.String(), nil
 	case descriptor.FieldDescriptorProto_TYPE_STRING:
@@ -69,8 +62,6 @@ func mapToPrimitiveGoEntityType(input descriptor.FieldDescriptorProto_Type) (str
 		return "", nil
 	case descriptor.FieldDescriptorProto_TYPE_BYTES:
 		return "[]bytes", nil
-	case descriptor.FieldDescriptorProto_TYPE_UINT32:
-		return reflect.Uint32.String(), nil
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
 		return "", nil
 	case descriptor.FieldDescriptorProto_TYPE_SFIXED32:
@@ -81,6 +72,15 @@ func mapToPrimitiveGoEntityType(input descriptor.FieldDescriptorProto_Type) (str
 		return "", nil
 	case descriptor.FieldDescriptorProto_TYPE_SINT64:
 		return "", nil
+
+	case descriptor.FieldDescriptorProto_TYPE_INT64,
+		descriptor.FieldDescriptorProto_TYPE_UINT64,
+		descriptor.FieldDescriptorProto_TYPE_FIXED64,
+		descriptor.FieldDescriptorProto_TYPE_INT32,
+		descriptor.FieldDescriptorProto_TYPE_FIXED32,
+		descriptor.FieldDescriptorProto_TYPE_UINT32:
+		return reflect.Int.String(), nil
+
 	}
 
 	return "", fmt.Errorf("Cannot find type")

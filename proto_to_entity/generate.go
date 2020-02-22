@@ -6,11 +6,34 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"text/template"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/iancoleman/strcase"
 )
+
+func GenerateEntity(protoFileName string, output io.Writer) error {
+	fdp, err := generateFileDescriptorProto(protoFileName)
+	if err != nil {
+		return err
+	}
+	return generateStructFromMessage(fdp, output)
+}
+
+func GenerateMapperToEntity(protoFileName string, output io.Writer) error {
+	fdp, err := generateFileDescriptorProto(protoFileName)
+	if err != nil {
+		return err
+	}
+	return generateMapToEntitis(fdp, output)
+}
+
+func GenerateMapperToProto(protoFileName string, output io.Writer) error {
+	fdp, err := generateFileDescriptorProto(protoFileName)
+	if err != nil {
+		return err
+	}
+	return generateMapToProtos(fdp, output)
+}
 
 func generateFileDescriptorProto(filename string) (*descriptor.FileDescriptorProto, error) {
 	fdp := &descriptor.FileDescriptorProto{}
@@ -48,67 +71,52 @@ func generateFileDescriptorProto(filename string) (*descriptor.FileDescriptorPro
 
 func generateStructFromMessage(fdp *descriptor.FileDescriptorProto, output io.Writer) error {
 
-	var b []byte
-
 	packageName := fdp.GetPackage()
 
 	for _, msg := range fdp.GetMessageType() {
-		structName := strcase.ToCamel(msg.GetName())
-		b = []byte(fmt.Sprintf("type %s struct {\n", structName))
-		output.Write(b)
-
-		for _, f := range msg.GetField() {
-
-			fieldType, err := getEntityType(f, packageName)
-			if err != nil {
-				return err
-			}
-			b = []byte(fmt.Sprintf("%s %s\n", strcase.ToCamel(f.GetName()), fieldType))
+		err := generateStructFromSingleMessage(msg, output, packageName)
+		if err != nil {
+			return err
+		}
+		/*
+			structName := strcase.ToCamel(msg.GetName())
+			b = []byte(fmt.Sprintf("type %s struct {\n", structName))
 			output.Write(b)
 
-		}
-		output.Write([]byte("}\n"))
+			for _, f := range msg.GetField() {
+
+				fieldType, err := getEntityType(f, packageName)
+				if err != nil {
+					return err
+				}
+				b = []byte(fmt.Sprintf("%s %s\n", strcase.ToCamel(f.GetName()), fieldType))
+				output.Write(b)
+
+			}
+			output.Write([]byte("}\n"))
+		*/
 	}
 	return nil
 
 }
 
-const mapperToEntityFunc = `
-func MapToEntity_{{.Name}} (input *proto.{{.Name}}) entity.{{.Name}} {
-	return entity.{{.Name}}{
-{{ range $f := .Fields }}		{{.Name}}: {{.InputMap}},
-{{end}}
-	}
-}
-`
+func generateStructFromSingleMessage(input *descriptor.DescriptorProto, output io.Writer, packageName string) error {
+	var b []byte
 
-type MapperToEntityField struct {
-	Name     string
-	InputMap string
-}
-
-type MapperToEntity struct {
-	Name   string
-	Fields []MapperToEntityField
-}
-
-func generateMapToEntity(input *descriptor.DescriptorProto, output io.Writer) error {
-	var err error
-	tmpl := template.New("mapperToEntity")
-	tmpl, err = tmpl.Parse(mapperToEntityFunc)
-	if err != nil {
-		return err
-	}
-
-	obj := MapperToEntity{Name: input.GetName()}
+	structName := strcase.ToCamel(input.GetName())
+	b = []byte(fmt.Sprintf("type %s struct {\n", structName))
+	output.Write(b)
 
 	for _, f := range input.GetField() {
-		ef := MapperToEntityField{
-			Name:     strcase.ToCamel(f.GetName()),
-			InputMap: "input." + strcase.ToCamel(f.GetName()),
-		}
-		obj.Fields = append(obj.Fields, ef)
-	}
 
-	return tmpl.Execute(output, obj)
+		fieldType, err := getEntityType(f, packageName)
+		if err != nil {
+			return err
+		}
+		b = []byte(fmt.Sprintf("%s %s\n", strcase.ToCamel(f.GetName()), fieldType))
+		output.Write(b)
+
+	}
+	output.Write([]byte("}\n"))
+	return nil
 }

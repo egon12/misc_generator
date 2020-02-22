@@ -49,15 +49,22 @@ Time *time.Time
 
 }
 
-func TestGenerateMapper(t *testing.T) {
-	fdp, _ := generateFileDescriptorProto("ping.proto")
-	response := fdp.GetMessageType()[1]
+func TestGenerateStructFromSingleMessage(t *testing.T) {
+	fdp, _ := generateFileDescriptorProto("digitalgrowth.proto")
 
+	dp := fdp.GetMessageType()[5]
 	w := &strings.Builder{}
-	err := generateMapToEntity(response, w)
+
+	err := generateStructFromSingleMessage(dp, w, "digitalgrowth")
 	if err != nil {
 		t.Error(err)
 	}
 
-	t.Error(w.String())
+	want := ``
+
+	if w.String() != want {
+		//t.Errorf("\nwant %s\ngot  %s\n", want, w.String())
+		//t.Errorf("\nwant %x\ngot  %x\n", want, w.String())
+	}
+
 }

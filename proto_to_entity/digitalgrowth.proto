@@ -1,0 +1,94 @@
+syntax="proto3";
+
+package digitalgrowth;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "proto";
+
+
+enum OrderStatus {
+	Unknown = 0;
+	Pending = 1;
+	Success = 2;
+	Failed = 3;
+}
+
+message OrderFilter {
+	google.protobuf.Timestamp date_from = 1;
+	google.protobuf.Timestamp date_until = 2;
+	string customer_number = 3;
+	string product_code = 4;
+	OrderStatus status = 5;
+}
+
+message Order {
+	string request_id = 1;
+	google.protobuf.Timestamp created_at = 2;
+	google.protobuf.Timestamp fulfilled_at = 3;
+	string product_code = 4;
+	int32 sales_price = 5;
+	int32 partner_fee = 6;
+	string error_code = 7;
+	string error_detail = 8;
+	OrderStatus status = 9;
+}
+
+message Product {
+	string code = 1;
+	string category = 2;
+	string operator = 3;
+	string name = 4;
+	int32 sales_price = 5;
+	int32 partner_fee = 6;
+}
+
+message MetaData {
+	int32 current_page = 1;
+	int32 per_page = 2;
+	int32 total_item = 3;
+}
+
+message OrderHistory {
+	string message = 1;
+	OrderStatus status_from = 2;
+	OrderStatus status_to = 3;
+	google.protobuf.Timestamp created_at = 4;
+}
+
+message OrderList {
+	repeated Order list = 1;
+	MetaData meta = 2;
+}
+
+message ProductList {
+	repeated Product list = 1;
+}
+
+message OrderDetail {
+	Order order = 1;
+	repeated OrderHistory history = 2;
+}
+
+message OrderListRequest {
+	int64 user_id = 1;
+	OrderFilter filter = 2;
+	int32 page = 3;
+	int32 per_page = 4;
+}
+
+message ProductListRequest {
+	int64 user_id = 1;
+}
+
+message OrderDetailRequest {
+	int64 user_id = 1;
+	string request_id = 2;
+}
+
+service DigitalGrowthB2B2C {
+	rpc orderList (OrderListRequest) returns (OrderList);
+	rpc productList (ProductListRequest) returns (ProductList);
+	rpc orderDetail (OrderDetailRequest) returns (OrderDetail);
+}
+
