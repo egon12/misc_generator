@@ -11,8 +11,8 @@ import (
 const inputTmpl = `
 func MapToProto_{{.Name}}(input {{.ArgType}}) *{{.RetType}} {
 	return &{{.RetType}} {
-		{{range $f := .Fields}}		{{ $f.Output }}: {{ $f.Input }}
-		{{end}}	}
+	{{range $f := .Fields}}	{{ $f.Output }}: {{ $f.Input }},
+	{{end}}}
 }`
 
 type fieldMapper struct {
@@ -33,11 +33,11 @@ func generateInput(input *ast.Definition, output io.Writer) error {
 
 	obj.ArgType = input.Name
 	obj.RetType = config.ProtoPackage + "." + removePrefix(input.Name)
-	obj.Name = obj.RetType
+	obj.Name = removePrefix(input.Name)
 
 	for _, f := range input.Fields {
 		fm := fieldMapper{
-			Input:  "input." + strcase.ToCamel(f.Name),
+			Input:  getToProtoInputFunction(f),
 			Output: strcase.ToCamel(f.Name),
 		}
 		obj.Fields = append(obj.Fields, fm)

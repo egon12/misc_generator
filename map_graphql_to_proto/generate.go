@@ -7,6 +7,11 @@ import (
 	"github.com/vektah/gqlparser/parser"
 )
 
+func Generate(graphQLContract string, output io.Writer, config Config) error {
+	SetConfig(config)
+	return generateMapper(graphQLContract, output)
+}
+
 func generateMapper(graphQLContract string, output io.Writer) error {
 	s := ast.Source{
 		BuiltIn: false,
@@ -28,11 +33,13 @@ func generateMapper(graphQLContract string, output io.Writer) error {
 			}
 		case ast.InputObject:
 			err = generateInput(v, output)
+		case ast.Enum:
+			err = generateEnum(v, output)
 		}
 
 		if err != nil {
 			return err
 		}
 	}
-	return nil
+	return generateSlice(sch, output)
 }

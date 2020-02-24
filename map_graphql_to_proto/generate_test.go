@@ -15,22 +15,22 @@ enum SomePrefixOrderStatus {
 }
 
 input SomePrefixOrderFilter {
-        date_from: Date
-        date_until: Date
-        status: SomePrefixOrderStatus
+	date_from: Date
+	date_until: Date
+	status: SomePrefixOrderStatus
 }
 
 type SomePrefixOrder {
-        date: Time!
-        date_end: Time
-        product: String!
-		price: Int!
-        status: SomePrefixOrderStatus!
+	date: Time!
+	date_end: Time
+	product: String!
+	price: Int!
+	status: SomePrefixOrderStatus!
 }
 
 type SomePrefixOrderList {
-        list: [SomePrefixOrder!]!
-		count: Int!
+	list: [SomePrefixOrder!]!
+	count: Int!
 }`
 
 func TestGenerateMapper(t *testing.T) {
@@ -43,5 +43,5 @@ func TestGenerateMapper(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	t.Error(w)
+	//t.Error(w)
 }

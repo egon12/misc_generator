@@ -4,15 +4,14 @@ import (
 	"io"
 	"text/template"
 
-	"github.com/iancoleman/strcase"
 	"github.com/vektah/gqlparser/ast"
 )
 
 const resolverTmpl = `
 func MapTo_{{.Name}}(input {{.ArgType}}) {{.RetType}} {
 	return {{.RetType}} {
-		{{range $f := .Fields}}		{{ $f.Output }}: {{ $f.Input }}
-		{{end}}	}
+	{{range $f := .Fields}}	{{ $f.Output }}: {{ $f.Input }},
+	{{end}}}
 }`
 
 func generateResolver(input *ast.Definition, output io.Writer) error {
@@ -24,13 +23,13 @@ func generateResolver(input *ast.Definition, output io.Writer) error {
 		Fields  []fieldMapper
 	}{}
 
-	obj.ArgType = config.ProtoPackage + "." + removePrefix(input.Name)
+	obj.ArgType = "*" + config.ProtoPackage + "." + removePrefix(input.Name)
 	obj.RetType = input.Name
 	obj.Name = input.Name
 
 	for _, f := range input.Fields {
 		fm := fieldMapper{
-			Input:  "input.Get" + strcase.ToCamel(f.Name) + "()",
+			Input:  getToGraphQLInputFunction(f),
 			Output: f.Name,
 		}
 		obj.Fields = append(obj.Fields, fm)
