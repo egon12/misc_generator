@@ -21,7 +21,7 @@ func mapInput(input *ast.Definition, output io.Writer) error {
 			Parent: &g,
 		}
 		t, _ := mapTypeGraphQltoType(f.Type)
-		gf.Type = removePointer(t)
+		gf.Type = t
 		g.Fields = append(g.Fields, gf)
 	}
 

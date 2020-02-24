@@ -1,6 +1,7 @@
 package map_graphql_to_proto
 
 import (
+	"fmt"
 	"io"
 	"text/template"
 
@@ -10,14 +11,20 @@ import (
 
 const inputTmpl = `
 func MapToProto_{{.Name}}(input {{.ArgType}}) *{{.RetType}} {
-	return &{{.RetType}} {
-	{{range $f := .Fields}}	{{ $f.Output }}: {{ $f.Input }},
-	{{end}}}
+	result := &{{.RetType}}{}
+	{{range $f := .Fields}}	
+	{{if .NeedCheckInput }}{{.InputCheck}}{{end}}
+	result.{{ $f.Output }} = {{ $f.Input }}
+	{{if .NeedCheckInput }}}{{end}}
+	{{end}}
+	return result
 }`
 
 type fieldMapper struct {
-	Input  string
-	Output string
+	Input          string
+	Output         string
+	NeedCheckInput bool
+	InputCheck     string
 }
 
 func generateInput(input *ast.Definition, output io.Writer) error {
@@ -40,6 +47,12 @@ func generateInput(input *ast.Definition, output io.Writer) error {
 			Input:  getToProtoInputFunction(f),
 			Output: strcase.ToCamel(f.Name),
 		}
+
+		if !f.Type.NonNull {
+			fm.NeedCheckInput = true
+			fm.InputCheck = fmt.Sprintf("if input.%s != nil {", strcase.ToCamel(f.Name))
+		}
+
 		obj.Fields = append(obj.Fields, fm)
 	}
 

@@ -48,16 +48,23 @@ func getGetFunction(input *ast.FieldDefinition) string {
 func getToProtoInputFunction(input *ast.FieldDefinition) string {
 	name := strcase.ToCamel(input.Name)
 	inputType := input.Type.NamedType
+
+	ptrPrefix := ""
+	if !input.Type.NonNull {
+		ptrPrefix = "*"
+	}
+
 	switch inputType {
 	case "Date":
 		return "input." + name + ".TimestampProto()"
 
 	case "Int", "String", "Bool":
-		return "input." + name
+		return ptrPrefix + "input." + name
 
 	default:
-		return fmt.Sprintf("MapToProto_%s(input.%s)",
+		return fmt.Sprintf("MapToProto_%s(%sinput.%s)",
 			removePrefix(inputType),
+			ptrPrefix,
 			name,
 		)
 	}
